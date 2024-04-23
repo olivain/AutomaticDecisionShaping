@@ -76,8 +76,8 @@ def count_perimeter_lines(image):
     perimeter_lines = 1
     ret, thresh = cv2.threshold(image, 180, 255, cv2.THRESH_BINARY_INV)
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    x, y, w, h = cv2.boundingRect(contours[0])  # Supposons qu'il n'y ait qu'un seul contour
-
+    x, y, w, h = cv2.boundingRect(contours[0]) 
+    
     for c in contours:
         pts = [v[0] for v in c]
         pts = remove_straight(pts)
@@ -103,32 +103,22 @@ def get_distance_golden_ratio(x,y,w,h):
     x1, y1, x2, y2 = x, y, x+w, y+h 
     width_shape = x2 - x1
     height_shape = y2 - y1
-
     part1 = max(width_shape, height_shape)
     part2 = min(width_shape, height_shape)
-
-    # Calculez le rapport d'or
     ratio = part1 / part2
-    
     golden_ratio = (1 + np.sqrt(5)) / 2
-
-    # Calculate the distance between the calculated ratio and the golden ratio
     distance = abs(ratio - golden_ratio)
-
     return distance
 
 
-def generate_new_candidate():
+def generate_new_candidate(training=False):
     random_number = random.randint(1, 3)
 
     if random_number == 1:
-        print("generate_connected_shape_image_xp")
         image = generate_connected_shape_image_xp()
     elif random_number == 2:
-        print("generate_connected_shape_image")
         image = generate_connected_shape_image()
     else:
-        print("generate_random_shape_image_one")
         image = generate_random_shape_image_one()
 
     #generate metadatas
@@ -139,9 +129,9 @@ def generate_new_candidate():
     black_percentage, _ = calculate_black_white_percentage(image)
     #nb elections success
     nb_elected = 0
-    #mean features
-    # mean_features = calculate_mean_features(nb_sides,type_nb,black_percentage,nb_elected)
-
+    if training == True:
+        nb_elected = random.randint(0, 100)
+    
     random_boolean = random.choice([True, False])
     if random_boolean:
         nb_elected = random.randint(0, 50)
@@ -167,10 +157,8 @@ def generate_new_candidate():
     return candidate_from_file, im
 
 def create_text_image_underneath(base_image, text, y_position):
-    # Make a copy of the base image to keep it intact
     stacked_image = base_image.copy()
 
-    # Convert base image to grayscale if it's not already
     if len(base_image.shape) > 2:
         base_image = cv2.cvtColor(base_image, cv2.COLOR_BGR2GRAY)
 
@@ -178,25 +166,16 @@ def create_text_image_underneath(base_image, text, y_position):
     text_size = cv2.getTextSize(text, font, 0.7, 2)[0]
     text_x = (stacked_image.shape[1] - text_size[0]) // 2
     text_y = y_position + 30
-
-    # Calculate the required height for the text
-    font_height = text_size[1]
-    padding = 10
     text_height = 40
-
-    # Extend the stacked_image height
     result_height = stacked_image.shape[0] + text_height
 
-    # Create an extended image with the appropriate number of channels
-    if len(stacked_image.shape) == 2:  # Grayscale image
+    if len(stacked_image.shape) == 2:
         extended_image = np.ones((result_height, stacked_image.shape[1]), dtype=np.uint8) * 255
-    else:  # Color image
+    else: 
         extended_image = np.ones((result_height, stacked_image.shape[1], stacked_image.shape[2]), dtype=np.uint8) * 255
 
-    # Overlay the original stacked_image onto the extended_image
     extended_image[:stacked_image.shape[0], :stacked_image.shape[1]] = stacked_image
 
-    # Add the text to the extended_image
     cv2.putText(extended_image, text, (text_x, text_y), font, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
 
     return extended_image
