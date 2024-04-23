@@ -24,7 +24,7 @@ This program simulates agents voting collectively to decide which pattern the as
 
 Run the program with the following command:
    ```
-    python3 agent_voting_simulation.py [nb_agents_to_setup] [delay_between_each_vote_in_ms] [training_nb_files] [training_nb_epoch] [--http] [--reset]
+    python3 main.py [nb_agents_to_setup] [delay_between_each_vote_in_ms] [training_nb_files] [training_nb_epoch] [--http] [--reset]
    ```
 - `nb_agents_to_setup`: Number of agents participating in the simulation.
 - `delay_between_each_vote_in_ms`: Delay between each vote in milliseconds.
@@ -35,7 +35,7 @@ Run the program with the following command:
 
 Example:
   ```
-    python3 agent_voting_simulation.py 5 10000 1000 10 --http
+    python3 main.py 5 10000 1000 10 --http
   ```
 
 ## Features
