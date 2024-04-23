@@ -4,7 +4,6 @@ import json
 import os
 import random
 
-
 def serialize_image(image):
     serialized_image = image.tolist()
     return serialized_image
@@ -20,20 +19,17 @@ def load_candidate_from_file(filename):
         file_path = f"candidates/{u}.png"
         image = cv2.imread(file_path)
     return image, candidate
-
-
+    
 def keep_three_pairs_random(folder_path):
     files = os.listdir(folder_path)
     file_names = []
 
     for file in files:
-        print(file)
         file_name, file_extension = os.path.splitext(file)
         if file_extension == '.png':
             file_names.append(file_name)
     random.shuffle(file_names)
     files_to_keep = 3
-
     for file_name in file_names:
         png_file = os.path.join(folder_path, file_name + ".png")
         json_file = os.path.join(folder_path, file_name + ".json")
@@ -41,12 +37,11 @@ def keep_three_pairs_random(folder_path):
             if os.path.exists(png_file) and os.path.exists(json_file):
                 files_to_keep -= 1
         else:
-            print(f"[.] removing training data {file_name} ...")
             if os.path.exists(png_file):
                 os.remove(png_file)
             if os.path.exists(json_file):
                 os.remove(json_file)
-
+            print(f"[.] {file_name} deleted.")
 
 def load_random_candidate(folder_path):
     files = os.listdir(folder_path)
@@ -61,5 +56,4 @@ def load_random_candidate(folder_path):
     filename = "candidates/" + file_name_without_extension + ".json"
     with open(filename, 'r') as json_file:
         json2 = json.load(json_file)
-
     return image, json2
