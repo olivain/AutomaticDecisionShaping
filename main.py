@@ -2,7 +2,6 @@ import tensorflow as tf
 import cv2
 import random
 import utils
-import json
 import os
 import neural
 import candidaters
@@ -12,13 +11,12 @@ import sys
 import time
 
 def main():
-    debug_mode = "--debug" in sys.argv
-    http_output_mode = "--http_out" in sys.argv
+    http_output_mode = "--http" in sys.argv
     do_reset = "--reset" in sys.argv
 
     if len(sys.argv) < 5 or not sys.argv[1].isdigit() or not sys.argv[2].isdigit():
-        print(f"\nUSAGE:\npython3 {sys.argv[0]} [nb_agents_to_setup] [delay_between_each_vote_in_ms30000] [training_nb_files] [traning_nb_epoch] ( [--debug] [--http_out] [--reset] )\n"
-              f"\nExample: python3 {sys.argv[0]} 8 3000 1000 10 --debug # wait 30 seconds between each vote and set up debug mode.\n")
+        print(f"\nUSAGE:\npython3 {sys.argv[0]} [nb_agents_to_setup] [delay_between_each_vote_in_ms30000] [training_nb_files] [traning_nb_epoch] ( [--http] [--reset] )\n"
+              f"\nExample: python3 {sys.argv[0]} 5 10000 1000 10 --http\n")
         return
     
     previous_file = "last_elected_uuid.log"
@@ -35,6 +33,10 @@ def main():
     directories = ["models", "columns", "candidates", "print"]
 
     if http_output_mode == True:
+        # set up a server
+        pnglog.initializeHttpOutput(nb_models)
+        # time.sleep(5)
+
         files = os.listdir("/var/www/html/ads/columns")
         for file in files:
             file_path = os.path.join("/var/www/html/ads/columns", file)
@@ -42,7 +44,6 @@ def main():
             print(f". {file_path} deleted.")
                 
     if not models_exist or do_reset:
-
         for directory in directories:
             if os.path.exists(directory) and os.path.isdir(directory):
                 files = os.listdir(directory)
@@ -60,28 +61,35 @@ def main():
         models = neural.train(nb_models,type_determinant, nb_epoch, nb_dataset)
 
         for idx, m in enumerate(models):
+            print(f"saving model number {idx} : models/agent_{idx}.keras")
             m.save(f"models/agent_{idx}.keras")
-        print("\nDONE TRAINING")
-
+        print("")
         utils.keep_three_pairs_random("candidates")
     else:
+
         models = [tf.keras.models.load_model(f"models/agent_{_f}.keras") for _f in range(nb_models)]
         print("\nDONE LOADING MODELS")
 
+        if http_output_mode and os.path.exists("columns") and os.path.isdir("columns"):
+            files = os.listdir("columns")
+            for file in files:
+                file_path = os.path.join("columns", file)
+                os.remove(file_path)
+                print(f". {file_path} deleted.")
   
     agent_tendancies_desc = [
         "(vote for the shape with the most sides)",
-        f"(vote for shapes of type {type_determinant})",
-        "(vote for the blackest image)",
-        "(random opinion)",
-        "(vote for the most uncommon shape area)",
         "(vote for the historically least elected)",
+        "(vote for the blackest image)",
+        f"(vote for the most symmetrical shape)",
+        "(vote for the biggest fractal dimension) ",
+        "(vote for the most uncommon shapes)",
         "(vote for a certain type of shape)",
-        "(vote for the closest to golden ratio)"
+        "(vote for the closest to golden ratio)",
+        "(vote for the highest aspect ratio)",
+        ""        
     ]
 
-    # print("wait here")
-    # time.sleep(30)
     previously_elected = ""
 
     try:
@@ -166,40 +174,17 @@ def main():
         for i in range(nb_models):
             img_with_text = candidaters.create_text_image_underneath(victory, text_print[i],y_pos)
             cv2.imwrite(f"print/{i}.png",img_with_text)
-            if  debug_mode == True:
-                pnglog.stack_images_on_top(f"columns/{i}.png", img_with_text)
+            
             if http_output_mode == True:
-                http_file = f"/var/www/html/ads/columns/{i}.png"
+                http_file = f"columns/{i}.png"
                 pnglog.stack_images_on_top(http_file, img_with_text)
-                os.chmod(http_file, 0o777)
+                pnglog.crop_image_from_top(http_file,5000)              
 
         # send to the thermal printer (POS 5890)
-        #printer.print_images(nb_models)
+        #printer.print_images(nb_models) # TODO ! 
 
         print("waiting for next election...")
-
-        if debug_mode:
-            d = pnglog.display_spaced_stacked_copies("columns/0.png", nb_models, orientation='horizontal', target_width=1980, column_spacing_cm=2)
-            cv2.imwrite("columns/full.png", d)
-            aspect_ratio = d.shape[1] / d.shape[0] 
-            target_height = int(800 / aspect_ratio)
-            small_d = cv2.resize(d, (800, target_height))
-            cv2.imshow('fullimg', small_d)
-            cv2.moveWindow('fullimg', 300, 0)
-
-            cv2.imshow('Image 2', image2)
-            cv2.moveWindow('Image 2', 10, 300)
-
-            cv2.imshow('Image 1', image1)
-            cv2.moveWindow('Image 1', 1100, 300)
-
-            key = cv2.waitKey(delay_votes)
-            if key == 27:  
-                break
-        else:
-            time.sleep(delay_votes / 1000)
-
-    cv2.destroyAllWindows()
+        time.sleep(delay_votes / 1000)
 
 if __name__ == "__main__":
     main()
