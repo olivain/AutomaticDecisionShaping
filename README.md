@@ -40,8 +40,8 @@ Example:
 
 ## Features
 
-- **Neural Network Training**: Trains neural network models based on given training data.
-- **Agent Voting**: Simulates agent decision-making based on trained models.
-- **Thermal Printer Integration**: Prints the winning pattern using the associated thermal printer.
-- **HTTP Visualization**: Optional mode to visualize the simulation results via HTTP.
+- **Neural Network Training**: Trains neural network models based on self generated training data.
+- **Agent Voting**: Simulates agent decision-making based on models trained with preferences.
+- **Thermal Printer Integration**: Print the winning pattern for every agent, using the associated thermal printer.
+- **HTTP Visualization**: Optional mode to visualize a simulation results via HTTP.
 
