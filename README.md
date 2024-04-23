@@ -30,7 +30,7 @@ Run the program with the following command:
 - `delay_between_each_vote_in_ms`: Delay between each vote in milliseconds.
 - `training_nb_files`: Number of training files for neural network training.
 - `training_nb_epoch`: Number of epochs for neural network training.
-- `--http`: (Optional) Enable HTTP output mode for visualization.
+- `--http`: (Optional) Enable HTTP output mode for visualization (http://localhost:8000).
 - `--reset`: (Optional) Reset and retrain neural network models.
 
 Example:
