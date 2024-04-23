@@ -13,7 +13,7 @@ import signal
 import sys
 
 def signal_handler(sig, frame):
-    print("exiting ADS...")
+    print("\nexit ADS...")
     if "--http" in sys.argv:
         os.remove("index.html")
     sys.exit(0)
