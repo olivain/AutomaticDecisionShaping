@@ -9,6 +9,14 @@ import pnglog
 # import printer
 import sys
 import time
+import signal
+import sys
+
+def signal_handler(sig, frame):
+    print("exiting ADS...")
+    if "--http" in sys.argv:
+        os.remove("index.html")
+    sys.exit(0)
 
 def main():
     http_output_mode = "--http" in sys.argv
@@ -18,7 +26,9 @@ def main():
         print(f"\nUSAGE:\npython3 {sys.argv[0]} [nb_agents_to_setup] [delay_between_each_vote_in_ms30000] [training_nb_files] [traning_nb_epoch] ( [--http] [--reset] )\n"
               f"\nExample: python3 {sys.argv[0]} 5 10000 1000 10 --http\n")
         return
-    
+  
+    signal.signal(signal.SIGINT, signal_handler)
+
     previous_file = "last_elected_uuid.log"
 
     delay_votes = int(sys.argv[2])
@@ -33,13 +43,12 @@ def main():
     directories = ["models", "columns", "candidates", "print"]
 
     if http_output_mode == True:
-        # set up a server
+        
         pnglog.initializeHttpOutput(nb_models)
-        # time.sleep(5)
-
-        files = os.listdir("/var/www/html/ads/columns")
+        
+        files = os.listdir("columns")
         for file in files:
-            file_path = os.path.join("/var/www/html/ads/columns", file)
+            file_path = os.path.join("columns", file)
             os.remove(file_path)
             print(f". {file_path} deleted.")
                 
