@@ -39,19 +39,11 @@ def main():
     type_determinant = random.randint(1, 3)
 
     models_exist = all(os.path.exists(f"models/agent_{_f}.keras") for _f in range(nb_models))
-
     directories = ["models", "columns", "candidates", "print"]
-
+    
     if http_output_mode == True:
-        
-        pnglog.initializeHttpOutput(nb_models)
-        
-        files = os.listdir("columns")
-        for file in files:
-            file_path = os.path.join("columns", file)
-            os.remove(file_path)
-            print(f". {file_path} deleted.")
-                
+            pnglog.initializeHttpOutput(nb_models)
+
     if not models_exist or do_reset:
         for directory in directories:
             if os.path.exists(directory) and os.path.isdir(directory):
@@ -66,6 +58,13 @@ def main():
 
             if os.path.exists(previous_file):
                     os.remove(previous_file)
+
+        if http_output_mode == True:
+            files = os.listdir("columns")
+            for file in files:
+                file_path = os.path.join("columns", file)
+                os.remove(file_path)
+                print(f". {file_path} deleted.")
         
         models = neural.train(nb_models,type_determinant, nb_epoch, nb_dataset)
 
