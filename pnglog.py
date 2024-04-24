@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import random
 import os
+import sys
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import threading
 
@@ -76,14 +77,14 @@ def start_server():
     httpd.serve_forever()
 
 def initializeHttpOutput(nb):
-    generate_html(nb)
+    generate_html(nb, int(sys.argv[2]))
     server_thread = threading.Thread(target=start_server)
     server_thread.daemon = True
     server_thread.start()
     print("Http output started: http://localhost:8000")
 
 
-def generate_html(png_files_count):
+def generate_html(png_files_count, reload_time):
     html_content = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Automatic Decision Shaping (simulation 1)</title><style>body,html{background-color:gray;height:100%;margin:0;display:flex;flex-direction:column;justify-content:center}.container{display:flex;flex-direction:column;align-items:center;width:100%}.images{display:flex;flex-direction:row}.boxes{display:flex;justify-content:center}.image{width:10vw;margin-left:calc(2.5vw + 10px);margin-right:calc(2.5vw + 10px);box-shadow:8px 8px 16px rgb(0 0 0 / .4)}.box{width:15vw;height:50px;background-color:#000;height:170px;margin:10px;box-shadow:8px 8px 16px rgb(0 0 0 / .4)}.container img:hover{transform:translateY(10px)}</style></head><body><div class="container"><div class="boxes">"""
     for i in range(png_files_count):
         html_content += "<div class=\"box\"></div>"
@@ -92,7 +93,8 @@ def generate_html(png_files_count):
         path = f"columns/{i}.png"
         r = random.randint(99,99999)
         im = f"columns/{i}.png?t={r}"
-        html_content += f" <img src='{im}' class='image' alt='Image {i}'>\n"
-    html_content += """</div></div><script>document.addEventListener("DOMContentLoaded",function(){console.log("Page loaded");setInterval(reloadImages,5000)});function reloadImages(){const images=document.querySelectorAll('.image');images.forEach(image=>{const timestamp=new Date().getTime();const src=image.src;image.src=src.includes('?')?src.split('?')[0]+'?'+timestamp:src+'?t='+timestamp;console.log("Reloading image:",image.src)})}</script></body></html>"""
+        html_content += f" <img src='{im}' class='image' alt='Image {i}'>"
+    html_content += f"</div></div><script>document.addEventListener('DOMContentLoaded',function(){{console.log('Page loaded');setInterval(reloadImages,{reload_time})}});"
+    html_content += """function reloadImages(){const images=document.querySelectorAll('.image');images.forEach(image=>{const timestamp=new Date().getTime();const src=image.src;image.src=src.includes('?')?src.split('?')[0]+'?'+timestamp:src+'?t='+timestamp;console.log("Reloading image:",image.src)})}</script></body></html>"""
     with open("index.html", "w") as file:
         file.write(html_content)
