@@ -6,45 +6,75 @@ import os
 import neural
 import candidaters
 import pnglog
-# import printer
+import printer
 import sys
 import time
 import signal
 import sys
+import argparse
 
-def signal_handler(sig, frame):
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Automatic Decision Shaping. 2024.")
+    parser.add_argument("nb_agents", type=int, help="Number of agents to setup")
+    parser.add_argument("delay_between_votes", type=int, help="Delay between each vote in milliseconds")
+    parser.add_argument("training_nb_files", nargs="?", type=int, default=None, help="Training : number of files to generate as dataset")
+    parser.add_argument("training_nb_epoch", nargs="?", type=int, default=None, help="Training : number of epochs")
+    
+    parser.add_argument("--reset", action="store_true", help="Reset all datas")
+    parser.add_argument("--http", action="store_true", help="Enable HTTP output on localhost:8000")
+    args = parser.parse_args()
+
+    # Check if both training_nb_files and training_nb_epoch are specified
+    if args.training_nb_files is not None and args.training_nb_epoch is not None:
+        args.reset = True
+    return args
+
+def signal_handler(sig, frame, http_output_mode):
     print("\nexit ADS...")
-    if "--http" in sys.argv:
+    if http_output_mode:
         os.remove("index.html")
     sys.exit(0)
 
 def main():
-    http_output_mode = "--http" in sys.argv
-    do_reset = "--reset" in sys.argv
+    print("\n\n🖨️ Automatic decision shaping 🗳️\n")
+    args = parse_arguments()
 
-    if len(sys.argv) < 5 or not sys.argv[1].isdigit() or not sys.argv[2].isdigit():
-        print(f"\nUSAGE:\npython3 {sys.argv[0]} [nb_agents_to_setup] [delay_between_each_vote_in_ms30000] [training_nb_files] [traning_nb_epoch] ( [--http] [--reset] )\n"
-              f"\nExample: python3 {sys.argv[0]} 5 10000 1000 10 --http\n")
-        return
+    # Access arguments
+    nb_models = args.nb_agents
+    delay_votes = args.delay_between_votes
+    nb_dataset = args.training_nb_files
+    nb_epoch = args.training_nb_epoch
+
+    http_output_mode = args.http
+    do_reset = args.reset
+
+    type_determinant = random.randint(1, 3)
+
+    print("nb_agents:", nb_models)
+    print("delay_between_votes:", delay_votes)
+    print("training_nb_files:", nb_dataset)
+    print("training_nb_epoch:", nb_epoch)
+    print("http_output_mode:", http_output_mode)
+    print("do_reset:", do_reset)
   
-    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGINT, lambda sig, frame: signal_handler(sig, frame, http_output_mode))
 
     previous_file = "last_elected_uuid.log"
 
-    delay_votes = int(sys.argv[2])
-    nb_models = int(sys.argv[1])
-    nb_epoch = int(sys.argv[4])
-    nb_dataset = int(sys.argv[3])
-    models = []
-    type_determinant = random.randint(1, 3)
-
     models_exist = all(os.path.exists(f"models/agent_{_f}.keras") for _f in range(nb_models))
     directories = ["models", "columns", "candidates", "print"]
+    
+    print(f"models found:{models_exist}")
     
     if http_output_mode == True:
             pnglog.initializeHttpOutput(nb_models)
 
     if not models_exist or do_reset:
+        if nb_epoch == None or nb_dataset == None:
+            print("[!] no epoch or dataset number specified.\n    Default: nb_epoch=10 nb_dataset=1000")
+            nb_epoch=10
+            nb_dataset=1000
+
         for directory in directories:
             if os.path.exists(directory) and os.path.isdir(directory):
                 files = os.listdir(directory)
@@ -166,6 +196,8 @@ def main():
 
             if elected == 0:
                 print(f"     yes:{res_2}/no:{res_1} = status quo ! let's revote !!!!\n")
+                print("Generating a new candidate")
+                json2, image2 = candidaters.generate_new_candidate()
 
         elected_json["nb_elected"] += 1
         json_file_name = f"candidates/{elected_json['uuid']}.json"
@@ -186,10 +218,10 @@ def main():
             if http_output_mode == True:
                 http_file = f"columns/{i}.png"
                 pnglog.stack_images_on_top(http_file, img_with_text)
-                pnglog.crop_image_from_top(http_file,5000)              
+                pnglog.crop_image_from_top(http_file,15000)              
 
         # send to the thermal printer (POS 5890)
-        #printer.print_images(nb_models) # TODO ! 
+        printer.print_images(nb_models) 
 
         print("waiting for next election...")
         time.sleep(delay_votes / 1000)
