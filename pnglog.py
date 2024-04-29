@@ -7,19 +7,15 @@ from http.server import SimpleHTTPRequestHandler, HTTPServer
 import threading
 
 def stack_images_on_top(existing_file, new_image):
-
     existing_image = None
     if os.path.exists(existing_file):
         existing_image = cv2.imread(existing_file, cv2.IMREAD_GRAYSCALE)
-
     if existing_image is None:
         existing_image = np.ones_like(new_image)
-
     if len(existing_image.shape) > 2:
         existing_image = cv2.cvtColor(existing_image, cv2.COLOR_BGR2GRAY)
     if len(new_image.shape) > 2:
         new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
-
     stacked_image = np.vstack((new_image, existing_image))
     cv2.imwrite(existing_file, stacked_image)
 
@@ -28,7 +24,6 @@ def display_spaced_stacked_copies(image_file, num_copies, orientation='horizonta
     _tmph, _tmpw = tmp.shape[:2]
     blank_space = (255, 255, 255) 
     blank_space_image = np.full((_tmph, int(column_spacing_cm * _tmpw / 2.54), 3), blank_space, dtype=tmp.dtype)
-    
     stacked_images = []
     for i in range(num_copies):
         imfile = f"columns/{i}.png"
@@ -62,7 +57,6 @@ def crop_image_from_top(image_path,desired_height):
         return True
     return False
 
-
 class RequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
@@ -77,12 +71,10 @@ def start_server():
     httpd.serve_forever()
 
 def initializeHttpOutput(nb):
-    generate_html(nb, int(sys.argv[2]))
+    generate_html(nb, sys.argv[2])
     server_thread = threading.Thread(target=start_server)
     server_thread.daemon = True
     server_thread.start()
-    print("Http output started: http://localhost:8000")
-
 
 def generate_html(png_files_count, reload_time):
     html_content = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Automatic Decision Shaping (simulation 1)</title><style>body,html{background-color:gray;height:100%;margin:0;display:flex;flex-direction:column;justify-content:center}.container{display:flex;flex-direction:column;align-items:center;width:100%}.images{display:flex;flex-direction:row}.boxes{display:flex;justify-content:center}.image{width:10vw;margin-left:calc(2.5vw + 10px);margin-right:calc(2.5vw + 10px);box-shadow:8px 8px 16px rgb(0 0 0 / .4)}.box{width:15vw;height:50px;background-color:#000;height:170px;margin:10px;box-shadow:8px 8px 16px rgb(0 0 0 / .4)}.container img:hover{transform:translateY(10px)}</style></head><body><div class="container"><div class="boxes">"""
@@ -90,7 +82,6 @@ def generate_html(png_files_count, reload_time):
         html_content += "<div class=\"box\"></div>"
     html_content += """</div></div><div class="container" style="height: 100%; margin-top: -80px;"><div class="images">"""
     for i in range(png_files_count):
-        path = f"columns/{i}.png"
         r = random.randint(99,99999)
         im = f"columns/{i}.png?t={r}"
         html_content += f" <img src='{im}' class='image' alt='Image {i}'>"
