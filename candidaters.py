@@ -179,4 +179,3 @@ def create_text_image_underneath(base_image, text, y_position):
     cv2.putText(extended_image, text, (text_x, text_y), font, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
 
     return extended_image
-
