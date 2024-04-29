@@ -4,6 +4,7 @@ import json
 import os
 import random
 
+
 def serialize_image(image):
     serialized_image = image.tolist()
     return serialized_image
@@ -19,7 +20,8 @@ def load_candidate_from_file(filename):
         file_path = f"candidates/{u}.png"
         image = cv2.imread(file_path)
     return image, candidate
-    
+
+
 def keep_three_pairs_random(folder_path):
     files = os.listdir(folder_path)
     file_names = []
@@ -57,3 +59,9 @@ def load_random_candidate(folder_path):
     with open(filename, 'r') as json_file:
         json2 = json.load(json_file)
     return image, json2
+
+def rotate_image_180(image_path, output_path):
+    image = cv2.imread(image_path)
+    rotated_image = cv2.rotate(image, cv2.ROTATE_180)
+    cv2.imwrite(output_path, rotated_image)
+    print(f"Image rotated by 180 degrees and saved to {output_path}")
