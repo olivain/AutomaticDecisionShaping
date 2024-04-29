@@ -1,12 +1,9 @@
 import numpy as np
 from skimage.measure import regionprops
 import tensorflow as tf
-import random
 import cv2
-import os
 import utils
 import candidaters
-import requests
 
 def extract_features(image, json):
     num_sides = json["nb_sides"] 
@@ -61,9 +58,9 @@ def train(nb_models, type_determinant=1, nb_epoch=10, nb_data=1000 ):
                 label2 = 1 if features2[3] < features1[3] else 0
             elif nb == 2:
                 #print(" -| tendance 2")
-                # #tendance a voter pour les plus grosses formes: (black_percentage)
-                label1 = 1 if features1[2] > features2[2] else 0
-                label2 = 1 if features2[2]  > features1[2] else 0
+                # #tendance a voter pour les plus petites formes: (black_percentage)
+                label1 = 1 if features1[2] < features2[2] else 0
+                label2 = 1 if features2[2]  < features1[2] else 0
             elif nb == 3:
                 #print(" -| tendance 3")
                 # tendance a voter pour le plus grand score de symetrie (?)
